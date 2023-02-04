@@ -3,9 +3,42 @@ import { prisma } from '../prisma';
 import { procedure, router } from '../trpc';
 
 export const orderRouter = router({
-  getAll: procedure.query(async () => {
-    return await prisma.order.findMany();
-  }),
+  getAll: procedure
+    .input(
+      z.object({
+        startDate: z.date(),
+        endDate: z.date(),
+      })
+    )
+    .query(async ({ input }) => {
+      const { startDate, endDate } = input;
+      endDate.setDate(endDate.getDate() + 1);
+      return await prisma.order.findMany({
+        where: {
+          issuedAt: {
+            lte: endDate,
+            gte: startDate,
+          },
+        },
+        include: {
+          restaurant: {
+            select: {
+              name: true,
+            },
+          },
+        },
+        orderBy: [
+          {
+            restaurant: {
+              name: 'asc',
+            },
+          },
+          {
+            issuedAt: 'asc',
+          },
+        ],
+      });
+    }),
   getById: procedure
     .input(
       z.object({

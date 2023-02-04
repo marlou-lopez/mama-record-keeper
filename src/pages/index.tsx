@@ -2,6 +2,7 @@ import CustomDatePicker from '@/components/CustomDatePicker';
 import OrderForm from '@/components/OrderForm';
 import OrderFormTitle from '@/components/OrderForm/OrderFormTitle';
 import OrderList from '@/components/OrderList';
+import PrintRecordForm from '@/components/PrintRecordForm';
 import { trpc } from '@/utils/trpc';
 import {
   Text,
@@ -12,27 +13,23 @@ import {
   Kbd,
   Modal,
   Center,
+  ActionIcon,
 } from '@mantine/core';
 import { useHotkeys } from '@mantine/hooks';
 import { showNotification } from '@mantine/notifications';
 import dayjs from 'dayjs';
 import React, { useState } from 'react';
-import { Plus } from 'tabler-icons-react';
+import { BuildingStore, Hammer, Plus, Printer } from 'tabler-icons-react';
 
 export default function Home() {
   const trpcUtils = trpc.useContext();
   const [currentDate, setCurrentDate] = useState(dayjs());
-  const [restaurantName, setRestaurantName] = useState('');
-  const [restaurantDescription, setRestaurantDescription] = useState('');
 
+  const [isActionModalOpen, setIsActionModalOpen] = useState(false);
   const [isOrderFormOpen, setIsOrderFormOpen] = useState(false);
+  const [isPrintModalOpen, setIsPrintModalOpen] = useState(false);
   useHotkeys([['ctrl+Enter', () => setIsOrderFormOpen(true)]]);
-
-  const { mutate } = trpc.restaurant.add.useMutation({
-    async onSuccess() {
-      await trpcUtils.restaurant.invalidate();
-    },
-  });
+  useHotkeys([['ctrl+O', () => setIsActionModalOpen((s) => !s)]]);
 
   const { mutate: addOrder } = trpc.order.add.useMutation({
     async onSuccess() {
@@ -46,15 +43,6 @@ export default function Home() {
     },
   });
 
-  const handleRestaurantAdd = (event: React.FormEvent | React.MouseEvent) => {
-    event.preventDefault();
-
-    mutate({
-      name: restaurantName,
-      description: restaurantDescription,
-    });
-  };
-
   return (
     <Container
       size={'xs'}
@@ -66,6 +54,19 @@ export default function Home() {
         gap: 8,
       }}
     >
+      <Flex justify={'space-between'} align={'center'}>
+        <Text fz={16} c={'violet'} fw={'bolder'}>
+          Mama Record Keeper
+        </Text>
+        <ActionIcon
+          c={'violet'}
+          onClick={() => {
+            setIsActionModalOpen(true);
+          }}
+        >
+          <Hammer />
+        </ActionIcon>
+      </Flex>
       <CustomDatePicker value={currentDate} onChange={setCurrentDate} />
       <Flex justify={'flex-end'}>
         <HoverCard openDelay={500} width={260} shadow={'md'}>
@@ -108,34 +109,49 @@ export default function Home() {
           }}
         />
       </Modal>
-      {/* <form onSubmit={handleRestaurantAdd}>
-        <TextInput
-          placeholder="Enter restaurant name"
-          label="Name"
-          withAsterisk
-          value={restaurantName}
-          onChange={(event) => setRestaurantName(event.target.value)}
-        />
-        <Textarea
-          placeholder="Enter restaurant description (optional)"
-          label="Description"
-          value={restaurantDescription}
-          onChange={(event) => setRestaurantDescription(event.target.value)}
-        />
-
-        <Button type="submit" onClick={handleRestaurantAdd} mt={4}>
-          Add
-        </Button>
-      </form>
-      {restaurants && restaurants.length > 0 ? (
-        <Flex direction={'column'} align={'center'} gap={'md'}>
-          {restaurants.map((restaurant) => (
-            <Text key={restaurant.id}>{restaurant.name}</Text>
-          ))}
+      <Modal
+        opened={isActionModalOpen}
+        onClose={() => setIsActionModalOpen(false)}
+        overlayOpacity={0.55}
+        overlayBlur={3}
+        transition={'slide-down'}
+        transitionDuration={500}
+        exitTransitionDuration={250}
+        centered
+        size={'xs'}
+        withCloseButton={false}
+      >
+        <Flex direction={'column'} gap={4}>
+          <Button
+            onClick={() => setIsPrintModalOpen(true)}
+            size="lg"
+            leftIcon={<Printer />}
+            variant="white"
+          >
+            Print Records
+          </Button>
+          <Button size="lg" leftIcon={<BuildingStore />} variant="white">
+            Manage Restaurants
+          </Button>
         </Flex>
-      ) : (
-        <Text>No restaurant</Text>
-      )} */}
+      </Modal>
+      <Modal
+        opened={isPrintModalOpen}
+        onClose={() => setIsPrintModalOpen(false)}
+        fullScreen
+        title={<OrderFormTitle title="Print Records" />}
+        styles={{
+          modal: {
+            display: 'flex',
+            flexDirection: 'column',
+          },
+          body: {
+            flexGrow: 1,
+          },
+        }}
+      >
+        <PrintRecordForm />
+      </Modal>
     </Container>
   );
 }

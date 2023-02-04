@@ -126,6 +126,7 @@ export default function OrderForm(props: OrderFormProps) {
         <Select
           withAsterisk={false}
           required
+          data-autofocus
           label={<FormLabel label="Restaurant" />}
           placeholder="Select restaurant"
           size={'lg'}

@@ -1,6 +1,8 @@
 import '@/styles/globals.css';
 import { trpc } from '@/utils/trpc';
-import { MantineProvider } from '@mantine/core';
+import {
+  MantineProvider,
+} from '@mantine/core';
 import { NotificationsProvider } from '@mantine/notifications';
 import type { AppProps } from 'next/app';
 import Head from 'next/head';
@@ -19,7 +21,6 @@ function App({ Component, pageProps }: AppProps) {
         theme={{
           fontFamily: 'Helvetica, sans-serif',
           primaryColor: 'violet',
-          // primaryShade: 8,
           globalStyles(theme) {
             return {
               '::-webkit-scrollbar': {
